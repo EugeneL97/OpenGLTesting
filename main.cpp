@@ -88,10 +88,14 @@ int main()
     glDeleteShader(fragmentShader);
 
     float vertices[] = {
-         0.5f, 0.5f, 0.0f,
-         0.5f, -0.5f, 0.0f,
-        -0.5f, -0.5f, 0.0f,
-         -0.5f,  0.5f, 0.0f
+        // first triangle
+        -1.0f, -0.5f, 0.0f,
+        -0.5f, 0.5f, 0.0f,
+        0.0f, -0.5f, 0.0f,
+        // second triangle
+        1.0f, -0.5f, 0.0f,
+        0.0f, -0.5f, 0.0f,
+        0.5f, 0.5f, 0.0f
     };
     unsigned int indices[] = {
         0, 1, 3,
@@ -116,7 +120,7 @@ int main()
     glBindVertexArray(0);
 
     // Wireframe
-    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     while (!glfwWindowShouldClose(window))
     {
@@ -127,7 +131,9 @@ int main()
 
         glUseProgram(shaderProgram);
         glBindVertexArray(VAO);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+        glDrawArrays(GL_TRIANGLES, 3, 3);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        //glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
         //glBindVertexArray(0);
 
         glfwSwapBuffers(window);
