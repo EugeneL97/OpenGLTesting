@@ -93,8 +93,8 @@ int main()
     {
         std::cout << "Failed to load texture" << std::endl;
     }
+    stbi_set_flip_vertically_on_load(true);
     stbi_image_free(data);
-
     glGenTextures(1, &texture2);
     glBindTexture(GL_TEXTURE_2D, texture2);
 
