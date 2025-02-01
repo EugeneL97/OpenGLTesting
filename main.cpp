@@ -10,6 +10,8 @@
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
 
+float transparency = 0.2f;
+
 int main()
 {
     glfwInit();
@@ -131,6 +133,8 @@ int main()
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, texture2);
 
+        ourShader.setFloat("transparency", transparency);
+
         ourShader.use();
         glBindVertexArray(VAO);
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -157,5 +161,21 @@ void processInput(GLFWwindow *window)
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
     {
         glfwSetWindowShouldClose(window, true);
+    }
+    if (glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS)
+    {
+        transparency += 0.01f;
+        if (transparency >= 1.0f)
+        {
+            transparency = 1.0f;
+        }
+    }
+    if (glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
+    {
+        transparency -= 0.01f;
+        if (transparency <= 0.0f)
+        {
+            transparency = 0.0f;
+        }
     }
 }
