@@ -157,6 +157,8 @@ int main()
     }
     stbi_image_free(data);
 
+    glEnable(GL_DEPTH_TEST);
+
     ourShader.use();
 
     glUniform1i(glGetUniformLocation(ourShader.ID, "texture1"), 0);
@@ -166,7 +168,7 @@ int main()
         processInput(window);
 
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, texture1);
