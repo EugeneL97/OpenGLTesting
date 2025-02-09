@@ -184,7 +184,7 @@ int main()
         view = glm::translate(view, glm::vec3(0.0f, 0.0f, -3.0f));
 
         glm::mat4 projection;
-        projection = glm::perspective(glm::radians(45.0f), (float)(height / width), 0.1f, 100.f);
+        projection = glm::perspective(glm::radians(45.0f), float(4/3), 0.1f, 100.f);
 
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
@@ -194,10 +194,16 @@ int main()
         {
             glm::mat4 model = glm::mat4(1.0f);
             model = glm::translate(model, cubePositions[i]);
-            float angle = 20.0f * i;
-            model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            float angle = 20.0f * (i + 1);
+            if (i % 3 == 0)
+            {
+                model = glm::rotate(model, (float)glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            }
+            else
+            {
+                model = glm::rotate(model, glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            }
             ourShader.setMat4("model", model);
-
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
 
