@@ -3,6 +3,7 @@
 #include "glad.c"
 #include <GLFW/glfw3.h>
 #include "shader.h"
+#include "camera.h"
 // Oops copied the directory incorrectly, supposed to be <glm/glm.hpp>
 // Too many glms...
 #include <glm/glm/glm.hpp>
@@ -15,13 +16,15 @@
 
 void framebuffer_size_callback(GLFWwindow* window, int width, int height);
 void processInput(GLFWwindow* window);
-
-glm::vec3 cameraPos = glm::vec3(0.0f, 0.0f, 3.0f);
-glm::vec3 cameraFront = glm::vec3(0.0f, 0.0f, -1.0f);
-glm::vec3 cameraUp = glm::vec3(0.0f, 1.0f, 0.0f);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 
 float deltaTime = 0.0f;
 float lastFrame = 0.0f;
+
+Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
+bool firstMouse = true;
+float lastX = 400, lastY = 300;
 
 int main()
 {
@@ -40,14 +43,18 @@ int main()
         glfwTerminate();
         return -1;
     }
+
     glfwMakeContextCurrent(window);
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    glfwSetCursorPosCallback(window, mouse_callback);
+    glfwSetScrollCallback(window, scroll_callback);
 
     if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD." << std::endl;
         return -1;
     }
+    glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     glEnable(GL_DEPTH_TEST);
 
@@ -98,16 +105,16 @@ int main()
 };
 
     glm::vec3 cubePositions[] = {
-    glm::vec3( 0.0f,  0.0f,  0.0f),
-    glm::vec3( 2.0f,  5.0f, -15.0f),
-    glm::vec3(-1.5f, -2.2f, -2.5f),
-    glm::vec3(-3.8f, -2.0f, -12.3f),
-    glm::vec3( 2.4f, -0.4f, -3.5f),
-    glm::vec3(-1.7f,  3.0f, -7.5f),
-    glm::vec3( 1.3f, -2.0f, -2.5f),
-    glm::vec3( 1.5f,  2.0f, -2.5f),
-    glm::vec3( 1.5f,  0.2f, -1.5f),
-    glm::vec3(-1.3f,  1.0f, -1.5f)
+        glm::vec3( 0.0f,  0.0f,  0.0f),
+        glm::vec3( 2.0f,  5.0f, -15.0f),
+        glm::vec3(-1.5f, -2.2f, -2.5f),
+        glm::vec3(-3.8f, -2.0f, -12.3f),
+        glm::vec3( 2.4f, -0.4f, -3.5f),
+        glm::vec3(-1.7f,  3.0f, -7.5f),
+        glm::vec3( 1.3f, -2.0f, -2.5f),
+        glm::vec3( 1.5f,  2.0f, -2.5f),
+        glm::vec3( 1.5f,  0.2f, -1.5f),
+        glm::vec3(-1.3f,  1.0f, -1.5f)
 };
 
     unsigned int VBO, VAO;
@@ -174,8 +181,6 @@ int main()
     ourShader.setInt("texture1", 0);
     ourShader.setInt("texture2", 1);
 
-    glm::mat4 projection = glm::perspective(glm::radians(45.0f), (float)width/(float)height, 0.1f, 100.0f);
-    ourShader.setMat4("projection", projection);
 
 
     glm::mat4 view;
@@ -200,7 +205,10 @@ int main()
 
         ourShader.use();
 
-        view = glm::lookAt(cameraPos, cameraPos + cameraFront, cameraUp);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)width/(float)height, 0.1f, 100.0f);
+        ourShader.setMat4("projection", projection);
+
+        view = camera.GetViewMatrix();
         ourShader.setMat4("view", view);
 
         glBindVertexArray(VAO);
@@ -214,7 +222,6 @@ int main()
 
             glDrawArrays(GL_TRIANGLES, 0, 36);
         }
-
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -239,12 +246,32 @@ void processInput(GLFWwindow *window)
         glfwSetWindowShouldClose(window, true);
     }
     if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
-        cameraPos += cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(FORWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_S) == GLFW_PRESS)
-        cameraPos -= cameraSpeed * cameraFront;
+        camera.ProcessKeyboard(BACKWARD, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
-        cameraPos -= glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
+        camera.ProcessKeyboard(LEFT, deltaTime);
     if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
-        cameraPos += glm::normalize(glm::cross(cameraFront, cameraUp)) * cameraSpeed;
-
+        camera.ProcessKeyboard(RIGHT, deltaTime);
 }
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+{
+    if (firstMouse)
+    {
+        lastX = xpos;
+        lastY = ypos;
+        firstMouse = false;
+    }
+    float xoffset = xpos - lastX;
+    float yoffset = lastY - ypos;
+    lastX = xpos;
+    lastY = ypos;
+
+    camera.ProcessMouseMovement(xoffset, yoffset);
+}
+
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+{
+    camera.ProcessMouseScroll((float)yoffset);
+}
+
